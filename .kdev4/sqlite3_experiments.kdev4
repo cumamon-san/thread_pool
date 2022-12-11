@@ -1,0 +1,49 @@
+[CMake]
+Build Directory Count=1
+Current Build Directory Index-Основная система=0
+
+[CMake][CMake Build Directory 0]
+Build Directory Path=/home/lehich/projects/sqlite3_experiments/build
+Build Type=Debug
+CMake Binary=/usr/bin/cmake
+CMake Executable=/usr/bin/cmake
+Environment Profile=
+Extra Arguments=
+Install Directory=/usr/local
+Runtime=Основная система
+
+[CustomDefinesAndIncludes][ProjectPath0]
+Path=.
+parseAmbiguousAsCPP=true
+parserArguments=-ferror-limit=100 -fspell-checking -Wdocumentation -Wunused-parameter -Wunreachable-code -Wall -std=c++17
+parserArgumentsC=-ferror-limit=100 -fspell-checking -Wdocumentation -Wunused-parameter -Wunreachable-code -Wall -std=c99
+parserArgumentsCuda=-ferror-limit=100 -fspell-checking -Wdocumentation -Wunused-parameter -Wunreachable-code -Wall -std=c++11
+parserArgumentsOpenCL=-ferror-limit=100 -fspell-checking -Wdocumentation -Wunused-parameter -Wunreachable-code -Wall -cl-std=CL1.1
+
+[CustomDefinesAndIncludes][ProjectPath0][Compiler]
+Name=Clang
+
+[Launch]
+Launch Configurations=Launch Configuration 0
+
+[Launch][Launch Configuration 0]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=sqlite3_experiments
+Type=Native Application
+
+[Launch][Launch Configuration 0][Data]
+Arguments=
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x02\x00\x00\x00&\x00s\x00q\x00l\x00i\x00t\x00e\x003\x00_\x00e\x00x\x00p\x00e\x00r\x00i\x00m\x00e\x00n\x00t\x00s\x00\x00\x00&\x00s\x00q\x00l\x00i\x00t\x00e\x003\x00_\x00e\x00x\x00p\x00e\x00r\x00i\x00m\x00e\x00n\x00t\x00s)
+Dependency Action=Build
+EnvironmentGroup=
+Executable=file:///home/lehich/projects/sqlite3_experiments
+External Terminal=konsole --noclose --workdir %workdir -e %exe
+Kill Before Executing Again=65536
+Project Target=sqlite3_experiments,sqlite3_experiments
+Use External Terminal=true
+Working Directory=
+isExecutable=false
+
+[Project]
+VersionControlSupport=kdevgit
