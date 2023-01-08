@@ -1,25 +1,57 @@
 #include <filesystem>
-#include <vector>
+#include <future>
 #include <string>
+#include <vector>
+#include <optional>
 
 #include "database.h"
 #include "log.h"
+#include "synchronyzer.h"
 
 namespace fs = std::filesystem;
 
 int main() {
-    std::vector<fs::path> paths;
+    synchronizer_t<std::vector<fs::path>> paths;
     for(auto&& item : fs::recursive_directory_iterator(".")) {
         if(fs::is_regular_file(item))
-            paths.push_back(item);
+            paths.unique()->push_back(item);
     }
 
-    database_t db("index.db");
-    for(auto&& path : paths) {
-        db.insert(path, fs::file_size(path));
+    synchronizer_t<database_t> db(new database_t("index.db"));
+
+    synchronizer_t<std::vector<std::pair<fs::path, size_t>>> results;
+
+    auto get_path = [&] {
+        auto uniq_paths = paths.unique();
+        if(!uniq_paths->empty()) {
+            auto path = std::move(uniq_paths->back());
+            uniq_paths->pop_back();
+            return std::optional<fs::path> {path};
+        }
+        return std::optional<fs::path> {};
+    };
+
+    std::vector<std::future<void>> futures;
+    for(int i = 0; i < 3; ++i) {
+        futures.push_back(std::async(std::launch::async, [&]{
+            std::vector<std::pair<fs::path, size_t>> local_result;
+            while(auto path = get_path())
+                local_result.emplace_back(*path, fs::file_size(*path));
+            DEBUG("Handle " << local_result.size() << " files");
+            auto uniq_result = results.unique();
+            uniq_result->insert(uniq_result->end(), local_result.begin(), local_result.end());
+        }));
     }
 
-    db.print();
+    for(auto&& f : futures)
+        f.wait();
+
+    DEBUG("Total " << results.shared()->size() << " files");
+
+    for(auto&& item : *results.shared())
+        db.unique()->insert(item.first, item.second);
+
+    db.unique()->print();
 
     return 0;
 }

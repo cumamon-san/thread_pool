@@ -21,12 +21,8 @@ struct database_t::error : std::runtime_error {
     : std::runtime_error(from + ": " + sqlite3_errmsg(db)) {}
 };
 
-class database_t::stmt {
+class database_t::stmt : utils::noncopyable {
 public:
-    stmt() = default;
-    stmt(const stmt&) = delete;
-    stmt& operator = (const stmt&) = delete;
-
     sqlite3_stmt *get() const { return ptr; }
     sqlite3_stmt **get_addr() { return &ptr; }
     ~stmt() { sqlite3_finalize(ptr); }

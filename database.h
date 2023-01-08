@@ -3,16 +3,14 @@
 
 #include <string>
 
+#include "utils.h"
+
 struct sqlite3;
 
-class database_t
-{
+class database_t : utils::noncopyable {
 public:
     explicit database_t(const std::string& path);
     ~database_t();
-
-    database_t(const database_t&) = delete;
-    database_t& operator = (const database_t&) = delete;
 
     void insert(const std::string& path, size_t size);
     void print() const;
