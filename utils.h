@@ -2,10 +2,10 @@
 #define UTILS_H
 
 namespace utils {
-    struct noncopyable {
-        noncopyable() = default;
-        noncopyable(const noncopyable&) = delete;
-        noncopyable& operator = (const noncopyable&) = delete;
+    struct noncopyable_t {
+        noncopyable_t() = default;
+        noncopyable_t(const noncopyable_t&) = delete;
+        noncopyable_t& operator = (const noncopyable_t&) = delete;
     };
 }
 

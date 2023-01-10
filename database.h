@@ -7,7 +7,7 @@
 
 struct sqlite3;
 
-class database_t : utils::noncopyable {
+class database_t : utils::noncopyable_t {
 public:
     explicit database_t(const std::string& path);
     ~database_t();
