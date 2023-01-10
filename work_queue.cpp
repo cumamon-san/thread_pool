@@ -3,7 +3,7 @@
 #include "log.h"
 
 work_queue_t::work_queue_t(size_t num_workers)
-: sum_(0)
+: sum_(new size_t(0))
 {
     auto worker = [&] (std::stop_token stoken) {
         while (true) {
@@ -19,8 +19,7 @@ work_queue_t::work_queue_t(size_t num_workers)
             queue_.pop();
             lock.unlock();
 
-            std::unique_lock s_lock(sum_mtx_);
-            sum_ += x;
+            *sum_.unique() += x;
 
             work_done_.notify_one();
             DEBUG("Worker notify done");
