@@ -2,9 +2,8 @@
 #define WORK_QUEUE_H
 
 #include <condition_variable>
-#include <deque>
-#include <queue>
 #include <mutex>
+#include <queue>
 #include <thread>
 #include <vector>
 
@@ -25,6 +24,7 @@ private:
     mutable std::mutex mtx_;
     std::condition_variable_any work_;
     std::condition_variable_any work_done_;
+
     utils::synchronizer_t<size_t> sum_;
 };
 

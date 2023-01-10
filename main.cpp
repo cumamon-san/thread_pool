@@ -13,8 +13,8 @@ namespace fs = std::filesystem;
 
 int main() {
     utils::synchronizer_t<std::vector<fs::path>> paths;
-    for(auto&& item : fs::recursive_directory_iterator("..")) {
-        if(fs::is_regular_file(item))
+    for (auto&& item : fs::recursive_directory_iterator("..")) {
+        if (fs::is_regular_file(item))
             paths.unique()->push_back(item);
     }
 
@@ -23,7 +23,7 @@ int main() {
 
     auto get_path = [&] {
         auto uniq_paths = paths.unique();
-        if(!uniq_paths->empty()) {
+        if (!uniq_paths->empty()) {
             auto path = std::move(uniq_paths->back());
             uniq_paths->pop_back();
             return std::optional<fs::path> {path};
@@ -32,7 +32,7 @@ int main() {
     };
 
     std::vector<std::future<void>> futures;
-    for(int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; ++i) {
         futures.push_back(std::async(std::launch::async, [&] {
             std::vector<std::pair<fs::path, size_t>> local_result;
             while(auto path = get_path())
@@ -43,12 +43,12 @@ int main() {
         }));
     }
 
-    for(auto&& f : futures)
+    for (auto&& f : futures)
         f.wait();
 
     DEBUG("Total " << results.shared()->size() << " files");
 
-    for(auto&& item : *results.shared())
+    for (auto&& item : *results.shared())
         db.unique()->insert(item.first, item.second);
 
     db.unique()->print();

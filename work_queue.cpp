@@ -26,7 +26,7 @@ work_queue_t::work_queue_t(size_t num_workers)
         }
     };
 
-    for(int i = 0; i < num_workers; ++i) {
+    for (int i = 0; i < num_workers; ++i) {
         DEBUG("Start worker #" << i);
         workers_.emplace_back(worker);
     }
