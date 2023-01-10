@@ -13,7 +13,7 @@
 
 class work_queue_t : utils::noncopyable_t {
 public:
-    work_queue_t();
+    work_queue_t(size_t num_workers);
     void push(int val);
     size_t sum() const { std::unique_lock lock(sum_mtx_); return sum_; }
     void wait();

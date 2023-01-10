@@ -2,7 +2,7 @@
 
 #include "log.h"
 
-work_queue_t::work_queue_t()
+work_queue_t::work_queue_t(size_t num_workers)
 : sum_(0)
 {
     auto worker = [&] (std::stop_token stoken) {
@@ -19,17 +19,15 @@ work_queue_t::work_queue_t()
             queue_.pop();
             lock.unlock();
 
-            {
-                std::unique_lock s_lock(sum_mtx_);
-                sum_ += x;
-            }
+            std::unique_lock s_lock(sum_mtx_);
+            sum_ += x;
 
             work_done_.notify_one();
             DEBUG("Worker notify done");
         }
     };
 
-    for(int i = 0; i < 10; ++i) {
+    for(int i = 0; i < num_workers; ++i) {
         DEBUG("Start worker #" << i);
         workers_.emplace_back(worker);
     }
@@ -50,9 +48,8 @@ void work_queue_t::wait() {
 
     for (int i = 0; i < workers_.size(); ++i) {
         DEBUG("Stop worker #" << i);
-        workers_.at(i) = {};
-        // workers_.at(i).request_stop();
-        // workers_.at(i).join();
+        workers_.at(i).request_stop();
+        workers_.at(i).join();
     }
     DEBUG("Done");
 }

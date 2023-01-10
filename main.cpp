@@ -19,7 +19,6 @@ int main() {
     }
 
     utils::synchronizer_t<database_t> db(new database_t("index.db"));
-
     utils::synchronizer_t<std::vector<std::pair<fs::path, size_t>>> results;
 
     auto get_path = [&] {
@@ -54,8 +53,8 @@ int main() {
 
     db.unique()->print();
 
-    work_queue_t wq;
-    for (int i = 0; i < 100; ++i)
+    work_queue_t wq(3);
+    for (int i = 0; i < 10; ++i)
         wq.push(10);
     wq.wait();
     DEBUG_EXPR(wq.sum());
