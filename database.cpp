@@ -36,7 +36,7 @@ database_t::database_t(const std::string& path)
 : database_t()
 {
     open(path);
-//    exec("DROP TABLE IF EXISTS " TABLE_NAME);
+    exec("DROP TABLE IF EXISTS " TABLE_NAME);
     exec("CREATE TABLE IF NOT EXISTS " TABLE_NAME R"~((
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         path TEXT NOT NULL UNIQUE,
