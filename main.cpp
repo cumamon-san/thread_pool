@@ -6,6 +6,9 @@
 #include <thread>
 #include <vector>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include <cstring>
+#include <cerrno>
 
 #include "database.h"
 #include "log.h"
@@ -24,15 +27,24 @@ int main() {
     utils::synchronizer_t<std::vector<file_info_t>> results;
 
     auto worker = [&] (fs::path path) {
-        std::this_thread::sleep_for(std::chrono::microseconds(1));
+        // std::this_thread::sleep_for(std::chrono::microseconds(1));
+        utils::scoped_fd_t fd(open(path.c_str(), O_RDONLY));
+        if (!fd) {
+            ERROR("Cannot open file: " << path << ": " << strerror(errno));
+            return;
+        }
+
+        int buff;
+        read(fd, &buff, sizeof(buff));
+
         struct stat st;
-        stat(path.c_str(), &st);
+        fstat(fd, &st);
         results.unique()->emplace_back(fs::canonical(path), st.st_size);
     };
 
     using clock_t = std::chrono::steady_clock;
     auto start = clock_t::now();
-    work_queue_t<fs::path> wq(worker, 2);
+    work_queue_t<fs::path> wq(worker, 1);
     for (auto&& item : fs::recursive_directory_iterator("../../..", fs::directory_options::skip_permission_denied)) {
         if (fs::is_regular_file(item))
             wq.push(item);
