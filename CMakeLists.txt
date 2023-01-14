@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_compile_options(-fsanitize=address)
 add_link_options(-fsanitize=address)
 
-add_executable(sqlite3_experiments main.cpp database.cpp work_queue.cpp)
+add_executable(sqlite3_experiments main.cpp database.cpp)
 
 target_link_libraries(sqlite3_experiments sqlite3)
 

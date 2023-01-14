@@ -53,11 +53,15 @@ int main() {
 
     db.unique()->print();
 
-    work_queue_t wq(3);
+    utils::synchronizer_t<size_t> sum;
+
+    auto worker = [&](int item) { *sum.unique() += item; };
+
+    work_queue_t<int> wq(worker, 3);
     for (int i = 0; i < 10; ++i)
         wq.push(10);
     wq.wait();
-    DEBUG_EXPR(wq.sum());
+    DEBUG_EXPR(*sum.shared());
 
     return 0;
 }

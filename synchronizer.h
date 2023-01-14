@@ -12,7 +12,7 @@ namespace utils {
 template<typename Data>
 class synchronizer_t : noncopyable_t {
 public:
-    synchronizer_t() : ptr_(new Data) {}
+    synchronizer_t() : ptr_(new Data {}) {}
     synchronizer_t(Data *ptr) : ptr_(ptr) {}
 
     template<typename T>
