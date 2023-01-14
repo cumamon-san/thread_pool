@@ -12,13 +12,12 @@ namespace utils {
 template<typename Data>
 class synchronizer_t : noncopyable_t {
 public:
-    synchronizer_t() : ptr_(new Data {}) {}
-    synchronizer_t(Data *ptr) : ptr_(ptr) {}
+    explicit synchronizer_t(Data *ptr = new Data {}) : ptr_(ptr) { assert(ptr_); }
 
     template<typename T>
     class unique_access : utils::noncopyable_t {
     public:
-        unique_access(T* value, std::shared_mutex& mtx) : value_(value), lock_(mtx) { assert(value_); }
+        unique_access(T* value, std::shared_mutex& mtx) : value_(value), lock_(mtx) {}
         T* operator -> () { return value_; }
         T& operator * () { return *value_; }
     private:
@@ -29,7 +28,7 @@ public:
     template<typename T>
     class shared_access : utils::noncopyable_t {
     public:
-        shared_access(T* value, std::shared_mutex& mtx) : value_(value), lock_(mtx) { assert(value_); }
+        shared_access(T* value, std::shared_mutex& mtx) : value_(value), lock_(mtx) {}
         T* operator -> () { return value_; }
         T& operator * () { return *value_; }
     private:

@@ -20,7 +20,7 @@ template<typename T>
 class work_queue_t : utils::noncopyable_t {
 public:
     using worker_t = std::function<void(T)>;
-    work_queue_t(const worker_t& worker, size_t num_workers = 1)
+    explicit work_queue_t(const worker_t& worker, size_t num_workers = 1)
     {
         auto wrapper = [&, worker] (std::stop_token stoken) {
             WORKER_DEBUG("Worker started");

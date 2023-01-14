@@ -7,11 +7,13 @@
 namespace utils {
     struct noncopyable_t {
         noncopyable_t() = default;
+        noncopyable_t(noncopyable_t&&) = default;
+        noncopyable_t& operator = (noncopyable_t&&) = default;
         noncopyable_t(const noncopyable_t&) = delete;
         noncopyable_t& operator = (const noncopyable_t&) = delete;
     };
 
-    class scoped_fd_t : noncopyable_t {
+    class scoped_fd_t {
     public:
         explicit scoped_fd_t(int fd = -1) noexcept : fd_(fd) {}
         scoped_fd_t(scoped_fd_t&& other) noexcept : fd_(other.release()) {}
