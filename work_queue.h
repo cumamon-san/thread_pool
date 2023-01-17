@@ -19,10 +19,10 @@
 template<typename T>
 class work_queue_t : utils::noncopyable_t {
 public:
-    using worker_t = std::function<void(T)>;
-    explicit work_queue_t(const worker_t& worker, size_t num_workers = 1)
+    using handler_t = std::function<void(T)>;
+    explicit work_queue_t(const handler_t& handler, size_t num_workers = 1)
     {
-        auto wrapper = [&, worker] (std::stop_token stoken) {
+        auto wrapper = [&, handler] (std::stop_token stoken) {
             WORKER_DEBUG("Worker started");
             while (true) {
                 std::unique_lock lock(mtx_);
@@ -36,9 +36,8 @@ public:
                 queue_.pop();
                 lock.unlock();
 
-                worker(std::move(item));
+                handler(std::move(item));
 
-                // WORKER_DEBUG("Worker notify done");
                 serviced_++;
                 work_done_.notify_one();
             }
@@ -46,43 +45,63 @@ public:
 
         for (int i = 0; i < num_workers; ++i) {
             DEBUG("Start worker #" << i);
-            workers_.emplace_back(wrapper);
+            workers_.emplace(wrapper);
             DEBUG("Worker ID: " << workers_.back().get_id());
         }
     }
 
+    ~work_queue_t() { wait(); }
+
     void push(T item) {
         std::lock_guard lock(mtx_);
-        DEBUG("Push " << item << " to queue");
+        // DEBUG("Push " << item << " to queue");
         queue_.push(std::move(item));
-        pushed_++;
+        ++pushed_;
+        if (pushed_ % 10000 == 0)
+            DEBUG("Push " << pushed_ << " items");
         work_.notify_one();
     }
 
-    size_t pushed() const { return pushed_.load(); };
+    template<typename Container>
+    void push_many(Container items) {
+        std::lock_guard lock(mtx_);
+        // DEBUG("Push " << item << " to queue");
+        for(auto&& item : items) {
+            queue_.push(std::move(item));
+            pushed_++;
+            auto pushed = pushed_;
+            if (pushed % 10000 == 0)
+                DEBUG("Push " << pushed << " items");
+        }
+        work_.notify_one();
+    }
+
+    size_t pushed() const { return pushed_; };
     size_t serviced() const { return serviced_.load(); };
 
     void wait() {
         DEBUG("Wait workers");
         std::unique_lock lock(mtx_);
         work_done_.wait(lock, [&] {
-            return queue_.empty() && serviced_.load() == pushed_.load();
+            return queue_.empty() && serviced_.load() == pushed_;
         });
         lock.unlock();
 
-        for (auto&& worker : workers_) {
-            DEBUG("Stop worker with ID " << worker.get_id());
-            worker.request_stop();
-            worker.join();
+        while (!workers_.empty()) {
+            auto& w = workers_.front();
+            DEBUG("Stop worker with ID " << w.get_id());
+            w.request_stop();
+            w.join();
+            workers_.pop();
         }
         DEBUG("Done");
     }
 
 private:
     std::queue<T> queue_;
-    std::vector<std::jthread> workers_;
+    std::queue<std::jthread> workers_;
 
-    std::atomic<size_t> pushed_;
+    size_t pushed_ = 0;
     std::atomic<size_t> serviced_;
 
     mutable std::mutex mtx_;

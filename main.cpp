@@ -1,3 +1,4 @@
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <future>
@@ -24,37 +25,53 @@ struct file_info_t {
 };
 
 int main() {
+    srand(time(0));
+    fs::path start_directory = fs::canonical("../../..");
+    fs::path tmp_path = fs::temp_directory_path().append(std::to_string(rand()));
+    DEBUG_EXPR(start_directory);
+
     utils::synchronizer_t<std::vector<file_info_t>> results;
 
-    auto worker = [&] (fs::path path) {
-        // std::this_thread::sleep_for(std::chrono::microseconds(1));
-        utils::scoped_fd_t fd(open(path.c_str(), O_RDONLY));
-        if (!fd) {
-            ERROR("Cannot open file: " << path << ": " << strerror(errno));
-            return;
+    std::unique_ptr<work_queue_t<fs::path>> wq;
+    auto handler = [&] (fs::path path) {
+        results.unique()->emplace_back(fs::canonical(path), 0);
+        if (fs::is_directory(path)) {
+            for (auto&& item : fs::directory_iterator(path, fs::directory_options::skip_permission_denied))
+                if (!fs::is_symlink(item))
+                    wq->push(item);
         }
+        else if (fs::is_regular_file(path)) {
+            utils::scoped_fd_t fd(open(path.c_str(), O_RDONLY));
+            if (!fd) {
+                ERROR("Cannot open file: " << path << ": " << strerror(errno));
+                return;
+            }
 
-        int buff;
-        read(fd, &buff, sizeof(buff));
+            if (fs::file_size(path) < 1024 * 1024 * 16) {
+                auto dst = tmp_path.string() + "/" + path.filename().string() + "_" + std::to_string(rand());
+                fs::copy_file(path, dst);
+                fs::remove(dst);
+            }
 
-        struct stat st;
-        fstat(fd, &st);
-        results.unique()->emplace_back(fs::canonical(path), st.st_size);
+            results.unique()->emplace_back(fs::canonical(path), fs::file_size(path));
+        }
     };
 
+    wq = std::make_unique<work_queue_t<fs::path>>(handler, 8);
+
+    fs::remove_all(tmp_path);
+    fs::create_directory(tmp_path);
+
     using clock_t = std::chrono::steady_clock;
+
     auto start = clock_t::now();
-    work_queue_t<fs::path> wq(worker, 1);
-    for (auto&& item : fs::recursive_directory_iterator("../../..", fs::directory_options::skip_permission_denied)) {
-        if (fs::is_regular_file(item))
-            wq.push(item);
-    }
-    wq.wait();
+    wq->push(start_directory);
+    wq->wait();
 
     auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(clock_t::now() - start).count();
     DEBUG_EXPR(duration_ms);
-    DEBUG_EXPR(wq.pushed());
-    DEBUG_EXPR(wq.serviced());
+    DEBUG_EXPR(wq->pushed());
+    DEBUG_EXPR(wq->serviced());
     DEBUG("Total " << results.shared()->size() << " files");
 
     // utils::synchronizer_t<database_t> db(new database_t("index.db"));
