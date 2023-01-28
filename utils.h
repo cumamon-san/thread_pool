@@ -2,6 +2,8 @@
 #define UTILS_H
 
 #include <unistd.h>
+#include <functional>
+#include <memory>
 #include <utility>
 
 namespace utils {
@@ -40,6 +42,18 @@ public:
 private:
   int fd_;
 };
+
+class scoped_exit_t : noncopyable_t {
+public:
+  using handler_t = std::function<void()>;
+  scoped_exit_t(handler_t&& handler) : handler_(std::move(handler)) {}
+  ~scoped_exit_t() { handler_(); }
+  handler_t release() { return std::exchange(handler_, {}); }
+
+private:
+  handler_t handler_;
+};
+
 } // namespace utils
 
 #endif // UTILS_H

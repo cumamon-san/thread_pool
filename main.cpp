@@ -24,21 +24,12 @@ struct file_info_t {
 
 int main() {
   fs::path start_directory = fs::canonical("../../..");
-  std::array<char, 7> name_template {'X', 'X', 'X', 'X', 'X', 'X', '\0'};
-  if (!mkdtemp(name_template.data())) {
-    ERROR("mkdtemp: " << strerror(errno));
-    return EXIT_FAILURE;
-  }
-
-  fs::path tmp_path = fs::temp_directory_path() / name_template.data();
   DEBUG_EXPR(start_directory);
-  DEBUG_EXPR(tmp_path);
 
   utils::synchronizer_t<std::vector<file_info_t>> results;
 
   std::unique_ptr<work_queue_t<fs::path>> wq;
   auto handler = [&](fs::path path) {
-    results.unique()->emplace_back(fs::canonical(path), 0);
     if (fs::is_directory(path)) {
       for (auto &&item : fs::directory_iterator(
                path, fs::directory_options::skip_permission_denied))
@@ -51,21 +42,12 @@ int main() {
         return;
       }
 
-      if (fs::file_size(path) < 1024 * 1024 * 16) {
-        auto dst = tmp_path.string() + "/" + path.filename().string() + "_" +
-                   std::to_string(rand());
-        fs::copy_file(path, dst);
-        fs::remove(dst);
-      }
-
-      results.unique()->emplace_back(fs::canonical(path), fs::file_size(path));
+      file_info_t info(fs::canonical(path), fs::file_size(path));
+      results.unique()->push_back(std::move(info));
     }
   };
 
-  wq = std::make_unique<work_queue_t<fs::path>>(handler, 2);
-
-  fs::remove_all(tmp_path);
-  fs::create_directory(tmp_path);
+  wq = std::make_unique<work_queue_t<fs::path>>(handler, 8);
 
   using clock_t = std::chrono::steady_clock;
 
