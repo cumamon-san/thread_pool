@@ -30,29 +30,30 @@ int main() {
 
   std::unique_ptr<work_queue_t<fs::path>> wq;
   auto handler = [&](fs::path path) {
-    if (fs::is_directory(path)) {
-      for (auto &&item : fs::directory_iterator(
-               path, fs::directory_options::skip_permission_denied))
-        if (!fs::is_symlink(item))
-          wq->push(item);
-    } else if (fs::is_regular_file(path)) {
-      utils::scoped_fd_t fd(open(path.c_str(), O_RDONLY));
-      if (!fd) {
-        ERROR("Cannot open file: " << path << ": " << strerror(errno));
-        return;
-      }
-
-      file_info_t info(fs::canonical(path), fs::file_size(path));
-      results.unique()->push_back(std::move(info));
+    utils::scoped_fd_t fd(open(path.c_str(), O_RDONLY));
+    if (!fd) {
+      ERROR("Cannot open file: " << path << ": " << strerror(errno));
+      return;
     }
+
+    std::array<char, 512> buff;
+    if(read(fd, buff.data(), buff.size()) < 0) {
+      ERROR("Cannot read file: " << path << ": " << strerror(errno));
+      return;
+    }
+
+    file_info_t info(fs::canonical(path), fs::file_size(path));
+    results.unique()->push_back(std::move(info));
   };
 
-  wq = std::make_unique<work_queue_t<fs::path>>(handler, 8);
+  wq = std::make_unique<work_queue_t<fs::path>>(handler, 3);
 
   using clock_t = std::chrono::steady_clock;
-
   auto start = clock_t::now();
-  wq->push(start_directory);
+
+  for (auto&& item : fs::recursive_directory_iterator(start_directory, fs::directory_options::skip_permission_denied))
+    if (fs::is_regular_file(item))
+      wq->push(item);
   wq->wait();
 
   auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
