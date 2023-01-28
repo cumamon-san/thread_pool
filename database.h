@@ -2,7 +2,9 @@
 #define DATABASE_H
 
 #include <string>
+#include <vector>
 
+#include "file_info.h"
 #include "utils.h"
 
 struct sqlite3;
@@ -12,12 +14,14 @@ public:
     explicit database_t(const std::string& path);
     ~database_t();
 
-    void insert(const std::string& path, size_t size);
+    void insert(const file_info_t& info);
+    void insert_many(const std::vector<file_info_t>& infos, int transaction_size = 1000);
     void print() const;
     void print_all() const;
 
-    struct error;
-    class stmt;
+    struct error_t;
+    class stmt_t;
+    class transaction_t;
 
 private:
     database_t() : db_(nullptr) {}

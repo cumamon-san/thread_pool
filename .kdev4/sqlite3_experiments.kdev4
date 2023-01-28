@@ -64,3 +64,5 @@ text/x-csrc=kdevcustomscript||clang_format
 text/x-java=kdevcustomscript||GNU_indent_GNU
 text/x-objc++src=kdevcustomscript||GNU_indent_GNU
 text/x-objcsrc=kdevcustomscript||GNU_indent_GNU
+text/x-python=kdevcustomscript||GNU_indent_GNU
+text/x-python3=kdevcustomscript||GNU_indent_GNU
