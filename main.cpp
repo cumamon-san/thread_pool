@@ -3,10 +3,7 @@
 #include <chrono>
 #include <cstring>
 #include <filesystem>
-#include <future>
-#include <optional>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <fcntl.h>
@@ -26,10 +23,16 @@ struct file_info_t {
 };
 
 int main() {
-  srand(time(0));
   fs::path start_directory = fs::canonical("../../..");
-  fs::path tmp_path = fs::temp_directory_path().append(std::to_string(rand()));
+  std::array<char, 7> name_template {'X', 'X', 'X', 'X', 'X', 'X', '\0'};
+  if (!mkdtemp(name_template.data())) {
+    ERROR("mkdtemp: " << strerror(errno));
+    return EXIT_FAILURE;
+  }
+
+  fs::path tmp_path = fs::temp_directory_path() / name_template.data();
   DEBUG_EXPR(start_directory);
+  DEBUG_EXPR(tmp_path);
 
   utils::synchronizer_t<std::vector<file_info_t>> results;
 
@@ -59,7 +62,7 @@ int main() {
     }
   };
 
-  wq = std::make_unique<work_queue_t<fs::path>>(handler, 8);
+  wq = std::make_unique<work_queue_t<fs::path>>(handler, 2);
 
   fs::remove_all(tmp_path);
   fs::create_directory(tmp_path);
@@ -84,5 +87,5 @@ int main() {
 
   // db.shared()->print();
 
-  return 0;
+  return EXIT_SUCCESS;
 }

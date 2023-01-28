@@ -14,7 +14,7 @@
 #include "synchronizer.h"
 #include "utils.h"
 
-#define WORKER_DEBUG(X) DEBUG("[" << gettid() << "]: " << X)
+#define WORKER_DEBUG(X) DEBUG("[" << std::this_thread::get_id() << "]: " << X)
 
 template <typename T> class work_queue_t : utils::noncopyable_t {
 public:
@@ -52,8 +52,7 @@ public:
   ~work_queue_t() { wait(); }
 
   void push(T item) {
-    std::lock_guard lock(mtx_);
-    // DEBUG("Push " << item << " to queue");
+    std::unique_lock lock(mtx_);
     queue_.push(std::move(item));
     ++pushed_;
     if (pushed_ % 10000 == 0)
@@ -62,16 +61,14 @@ public:
   }
 
   template <typename Container> void push_many(Container items) {
-    std::lock_guard lock(mtx_);
-    // DEBUG("Push " << item << " to queue");
+    std::unique_lock lock(mtx_);
     for (auto &&item : items) {
       queue_.push(std::move(item));
       pushed_++;
-      auto pushed = pushed_;
-      if (pushed % 10000 == 0)
-        DEBUG("Push " << pushed << " items");
+      if (pushed_ % 10000 == 0)
+        DEBUG("Push " << pushed_ << " items");
     }
-    work_.notify_one();
+    work_.notify_all();
   }
 
   size_t pushed() const { return pushed_; };
