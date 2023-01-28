@@ -24,7 +24,7 @@ public:
       WORKER_DEBUG("Worker started");
       while (true) {
         std::unique_lock lock(mtx_);
-        work_.wait(lock, stoken,
+        has_work_.wait(lock, stoken,
                    [&] { return !queue_.empty() || stoken.stop_requested(); });
         if (stoken.stop_requested()) {
           WORKER_DEBUG("Stop requested. Exit");
@@ -57,7 +57,7 @@ public:
     ++pushed_;
     if (pushed_ % 10000 == 0)
       DEBUG("Push " << pushed_ << " items");
-    work_.notify_one();
+    has_work_.notify_one();
   }
 
   template <typename Container> void push_many(Container items) {
@@ -68,7 +68,7 @@ public:
       if (pushed_ % 10000 == 0)
         DEBUG("Push " << pushed_ << " items");
     }
-    work_.notify_all();
+    has_work_.notify_all();
   }
 
   size_t pushed() const { return pushed_; };
@@ -99,7 +99,7 @@ private:
   std::atomic<size_t> serviced_;
 
   mutable std::mutex mtx_;
-  std::condition_variable_any work_;
+  std::condition_variable_any has_work_;
   std::condition_variable_any work_done_;
 };
 
