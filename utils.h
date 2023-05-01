@@ -36,8 +36,7 @@ public:
   };
   int release() noexcept { return std::exchange(fd_, -1); }
 
-  operator bool() { return fd_ >= 0; };
-  operator int() { return fd_; };
+  operator int() const noexcept { return fd_; };
 
 private:
   int fd_;
