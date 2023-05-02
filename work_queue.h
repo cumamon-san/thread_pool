@@ -85,7 +85,6 @@ public:
       auto &w = workers_.front();
       DEBUG("Stop worker with ID " << w.get_id());
       w.request_stop();
-      w.join();
       workers_.pop();
     }
     DEBUG("Done");
