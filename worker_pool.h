@@ -122,7 +122,7 @@ public:
   }
 
 private:
-  std::queue<move_only_function<void()>> queue_;
+  std::queue<utils::move_only_function_t<void()>> queue_;
   std::vector<std::jthread> workers_;
 
   size_t pushed_ = 0;

@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 
 project(sqlite3_experiments)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 add_subdirectory(third-party/googletest)
 add_subdirectory(third-party/spdlog)
