@@ -1,15 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(sqlite3_experiments)
+project(async_pool)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
-
 add_subdirectory(third-party/googletest)
 add_subdirectory(third-party/spdlog)
-add_subdirectory(third-party/sqlite3)
 
 include_directories(${CMAKE_SOURCE_DIR})
 
@@ -17,11 +14,6 @@ FILE(GLOB SOURCES *.cpp)
 
 add_library(core INTERFACE)
 target_include_directories(core INTERFACE ${CMAKE_SOURCE_DIR})
-target_link_libraries(core INTERFACE SQLite3 spdlog::spdlog)
-
-add_executable(${PROJECT_NAME} main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE core)
+target_link_libraries(core INTERFACE spdlog::spdlog)
 
 add_subdirectory(tests)
-
-install(TARGETS sqlite3_experiments RUNTIME DESTINATION bin)

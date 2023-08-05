@@ -8,7 +8,7 @@ static void inc_arg(int &counter) { ++counter; }
 
 template <typename T> using funct_t = utils::move_only_function_t<T>;
 
-TEST(MO_Function, Constructors) {
+TEST(MOFunction, Constructors) {
   using wrapper_t = funct_t<void(int &)>;
 
   {
@@ -72,7 +72,7 @@ struct CheckDestructor {
   inline static std::unordered_set<CheckDestructor *> items;
 };
 
-TEST(MO_Function, Destructors) {
+TEST(MOFunction, Destructors) {
   using wrapper_t = utils::move_only_function_t<void(int &)>;
   {
     wrapper_t w1(CheckDestructor{});
@@ -92,7 +92,7 @@ TEST(MO_Function, Destructors) {
   EXPECT_EQ(CheckDestructor::items.size(), 0UL);
 }
 
-TEST(MO_Function, Methods) {
+TEST(MOFunction, Methods) {
   int counter = 0;
   CheckDestructor cd;
   {

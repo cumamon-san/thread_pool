@@ -205,7 +205,7 @@ public:
     }
   }
 
-  inline move_only_function_t &operator=(nullptr_t) {
+  inline move_only_function_t &operator=(std::nullptr_t) {
     reset();
     return *this;
   }
