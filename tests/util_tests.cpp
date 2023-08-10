@@ -47,7 +47,7 @@ TEST(MOFunction, Constructors) {
     wrapper_t w2 = std::move(w1);
 
     int counter = 0;
-    EXPECT_THROW(w1(counter), std::bad_function_call);
+    EXPECT_THROW(w1(counter), std::bad_function_call); // NOLINT
 
     w2(counter);
     EXPECT_EQ(counter, 1);
@@ -56,7 +56,7 @@ TEST(MOFunction, Constructors) {
 
 struct CheckDestructor {
   CheckDestructor() { EXPECT_TRUE(items.insert(this).second); }
-  CheckDestructor(CheckDestructor &&) : CheckDestructor() {}
+  CheckDestructor(CheckDestructor &&) : CheckDestructor() {} // NOLINT
 
   CheckDestructor(const CheckDestructor &) = delete;
   CheckDestructor &operator=(const CheckDestructor &) = delete;
